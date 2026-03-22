@@ -1,0 +1,48 @@
+@import './fonts.css';
+@import './tailwind.css';
+@import './theme.css';
+
+/* Mapbox GL CSS */
+@import 'mapbox-gl/dist/mapbox-gl.css';
+@import '@mapbox/mapbox-gl-geocoder/dist/mapbox-gl-geocoder.css';
+
+/* Custom animations and overrides */
+* {
+  box-sizing: border-box;
+}
+
+html, body {
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+  width: 100%;
+  height: 100%;
+}
+
+#root {
+  width: 100vw;
+  height: 100vh;
+}
+
+/* Mapbox geocoder overrides for dark theme */
+.mapboxgl-ctrl-geocoder {
+  background-color: #18181b !important;
+  border: 1px solid #3f3f46 !important;
+}
+
+.mapboxgl-ctrl-geocoder input {
+  color: #fff !important;
+}
+
+.mapboxgl-ctrl-geocoder input::placeholder {
+  color: #71717a !important;
+}
+
+.mapboxgl-ctrl-geocoder--suggestion {
+  background-color: #18181b !important;
+  color: #fff !important;
+}
+
+.mapboxgl-ctrl-geocoder--suggestion:hover {
+  background-color: #27272a !important;
+}
