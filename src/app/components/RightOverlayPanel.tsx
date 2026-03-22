@@ -5,9 +5,11 @@ import { motion } from 'motion/react';
 interface RightOverlayPanelProps {
   analysis: AnalysisResult | null;
   onClose: () => void;
+  /** When true, panel lives in the scrollable sidebar (bounded height, no map overlap). */
+  embedded?: boolean;
 }
 
-export function RightOverlayPanel({ analysis, onClose }: RightOverlayPanelProps) {
+export function RightOverlayPanel({ analysis, onClose, embedded = false }: RightOverlayPanelProps) {
   if (!analysis) return null;
 
   const { terrain, landmarks, stability } = analysis;
@@ -24,16 +26,24 @@ export function RightOverlayPanel({ analysis, onClose }: RightOverlayPanelProps)
 
   return (
     <motion.div
-      initial={{ x: 400, opacity: 0 }}
-      animate={{ x: 0, opacity: 1 }}
-      exit={{ x: 400, opacity: 0 }}
-      transition={{ duration: 0.3, ease: 'easeOut' }}
-      className="absolute top-4 right-80 bg-zinc-900/95 backdrop-blur-sm border border-zinc-700 rounded-lg w-96 shadow-2xl max-h-[calc(100vh-2rem)] overflow-y-auto"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      transition={{ duration: 0.2, ease: 'easeOut' }}
+      className={
+        embedded
+          ? 'flex w-full flex-col rounded-lg border border-zinc-700 bg-zinc-900/95 shadow-xl backdrop-blur-sm'
+          : 'flex h-full min-h-0 w-full flex-col overflow-hidden'
+      }
     >
       {/* Header */}
-      <div className="sticky top-0 bg-zinc-900 border-b border-zinc-700 p-4 flex items-center justify-between">
-        <h3 className="font-semibold text-white flex items-center gap-2">
-          <Mountain className="w-5 h-5 text-cyan-400" />
+      <div
+        className={`flex shrink-0 items-center justify-between border-b border-zinc-700 bg-zinc-900 p-3 ${
+          embedded ? '' : 'sticky top-0 z-10'
+        }`}
+      >
+        <h3 className="flex items-center gap-2 text-sm font-semibold text-white sm:text-base">
+          <Mountain className="h-4 w-4 shrink-0 text-cyan-400 sm:h-5 sm:w-5" />
           Terrain Analysis
         </h3>
         <button
@@ -44,8 +54,14 @@ export function RightOverlayPanel({ analysis, onClose }: RightOverlayPanelProps)
         </button>
       </div>
 
-      {/* Content */}
-      <div className="p-4 space-y-4">
+      {/* Content — embedded: flows with sidebar scroll (no inner scrollbar) */}
+      <div
+        className={
+          embedded
+            ? 'space-y-3 p-3 sm:space-y-4 sm:p-4'
+            : 'min-h-0 flex-1 space-y-3 overflow-y-auto overscroll-contain p-3 sm:space-y-4 sm:p-4'
+        }
+      >
         {/* Location */}
         <div className="bg-zinc-800/50 p-3 rounded-lg border border-zinc-700/50">
           <div className="text-xs text-zinc-500 mb-1">Location</div>

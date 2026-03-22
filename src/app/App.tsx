@@ -1,8 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { DashboardSidebar } from './components/DashboardSidebar';
 import { MapboxCanvas } from './components/MapboxCanvas';
-import { LayerControls } from './components/LayerControls';
-import { RightOverlayPanel } from './components/RightOverlayPanel';
 import { analyzeTerrain } from './services/geologicalAPI';
 import { 
   GeologicalMetrics, 
@@ -13,13 +11,17 @@ import {
 } from './types/geological';
 import { Loader2 } from 'lucide-react';
 import { toast, Toaster } from 'sonner';
+import { useIsMobile } from './components/ui/use-mobile';
 
 export default function App() {
+  const isMobile = useIsMobile();
   const [markers, setMarkers] = useState<MapMarker[]>([]);
   const [landmarks, setLandmarks] = useState<Landmark[]>([]);
   const [currentAnalysis, setCurrentAnalysis] = useState<AnalysisResult | null>(null);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
-  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
+  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(() =>
+    typeof window !== 'undefined' ? window.innerWidth < 768 : false,
+  );
 
   const [activeLayers, setActiveLayers] = useState({
     elevation: false,
@@ -151,9 +153,9 @@ export default function App() {
   }, []);
 
   return (
-    <div className="flex h-screen bg-zinc-950 text-white overflow-hidden">
+    <div className="flex min-h-0 min-h-[100dvh] w-full flex-col bg-zinc-950 text-white md:flex-row md:h-screen md:overflow-hidden">
       <Toaster 
-        position="bottom-right"
+        position={isMobile ? 'top-center' : 'top-right'}
         theme="dark"
         toastOptions={{
           style: {
@@ -163,8 +165,8 @@ export default function App() {
           },
         }}
       />
-      
-      {/* Left Sidebar - Dashboard */}
+
+      {/* Left: fixed-width dashboard sidebar */}
       <DashboardSidebar
         metrics={metrics}
         composition={composition}
@@ -178,46 +180,48 @@ export default function App() {
         ]}
         isCollapsed={isSidebarCollapsed}
         onToggle={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
+        currentAnalysis={currentAnalysis}
+        onCloseAnalysis={() => setCurrentAnalysis(null)}
+        activeLayers={activeLayers}
+        onLayerToggle={handleLayerToggle}
+        isMobile={isMobile}
       />
 
-      {/* Right Side - Map Area */}
-      <div className="flex-1 relative">
-        {/* Mapbox Canvas */}
+      {isMobile && !isSidebarCollapsed && (
+        <button
+          type="button"
+          aria-label="Close menu"
+          className="fixed inset-0 z-30 bg-black/50 backdrop-blur-[2px]"
+          onClick={() => setIsSidebarCollapsed(true)}
+        />
+      )}
+
+      {/* Map fills space beside sidebar (desktop) or full width (mobile drawer) */}
+      <div className="relative flex min-h-0 w-full min-w-0 flex-1 flex-col">
         <MapboxCanvas
+          sidebarCollapsed={isSidebarCollapsed}
           onMapClick={handleMapClick}
           markers={markers}
           landmarks={landmarks}
           activeLayers={activeLayers}
         />
 
-        {/* Layer Controls Overlay */}
-        <LayerControls
-          layers={activeLayers}
-          onLayerToggle={handleLayerToggle}
-        />
-
-        {/* Analysis Panel Overlay */}
-        {currentAnalysis && (
-          <RightOverlayPanel
-            analysis={currentAnalysis}
-            onClose={() => setCurrentAnalysis(null)}
-          />
-        )}
-
-        {/* Loading Indicator */}
         {isAnalyzing && (
-          <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2 bg-zinc-900/95 backdrop-blur-sm border border-zinc-700 rounded-full px-6 py-3 flex items-center gap-3 shadow-2xl">
-            <Loader2 className="w-5 h-5 text-cyan-400 animate-spin" />
-            <span className="text-sm font-medium text-white">Analyzing terrain...</span>
+          <div className="pointer-events-none absolute inset-x-0 bottom-[max(5.5rem,env(safe-area-inset-bottom,0px)+4rem)] z-10 flex justify-center px-4">
+            <div className="flex max-w-md items-center gap-3 rounded-2xl border border-zinc-700 bg-zinc-900/95 px-4 py-3 shadow-2xl backdrop-blur-sm sm:rounded-full sm:px-6">
+              <Loader2 className="h-5 w-5 shrink-0 animate-spin text-cyan-400" />
+              <span className="text-center text-sm font-medium text-white">Analyzing terrain…</span>
+            </div>
           </div>
         )}
 
-        {/* Instructions Overlay */}
         {markers.length === 1 && !isAnalyzing && (
-          <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2 bg-gradient-to-r from-cyan-500 to-purple-600 rounded-full px-6 py-3 shadow-2xl animate-pulse">
-            <span className="text-sm font-medium text-white">
-              🗺️ Click anywhere on the map to analyze terrain
-            </span>
+          <div className="pointer-events-none absolute inset-x-0 bottom-[max(5.5rem,env(safe-area-inset-bottom,0px)+4rem)] z-10 flex justify-center px-4">
+            <div className="max-w-md rounded-2xl bg-gradient-to-r from-cyan-500 to-purple-600 px-4 py-3 text-center shadow-2xl sm:max-w-lg sm:rounded-full sm:px-6 sm:py-3">
+              <span className="text-sm font-medium leading-snug text-white">
+                {isMobile ? 'Tap the map to analyze terrain' : 'Click the map to analyze terrain'}
+              </span>
+            </div>
           </div>
         )}
       </div>

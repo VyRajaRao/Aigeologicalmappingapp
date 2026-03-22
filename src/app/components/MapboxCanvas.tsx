@@ -2,13 +2,14 @@ import { useEffect, useRef, useState } from 'react';
 import mapboxgl from 'mapbox-gl';
 import MapboxGeocoder from '@mapbox/mapbox-gl-geocoder';
 import { MapMarker, Landmark } from '../types/geological';
-import { calculateElevation } from '../services/geologicalAPI';
 
 // Mapbox CSS imports
 import 'mapbox-gl/dist/mapbox-gl.css';
 import '@mapbox/mapbox-gl-geocoder/dist/mapbox-gl-geocoder.css';
 
 interface MapboxCanvasProps {
+  /** When true, extra top-left inset so geocoder clears the sidebar toggle. */
+  sidebarCollapsed?: boolean;
   onMapClick: (lat: number, lng: number) => void;
   markers: MapMarker[];
   landmarks: Landmark[];
@@ -25,11 +26,12 @@ interface MapboxCanvasProps {
 
 const MAPBOX_TOKEN = import.meta.env.VITE_MAPBOX_ACCESS_TOKEN || 'pk.eyJ1IjoidnlyYWphIiwiYSI6ImNtbjFwb2d3eTBwamQycnNqYTUxd3Q1dHUifQ.kJkuVZ1LmRUyqzhbuGE-iw';
 
-export function MapboxCanvas({ 
-  onMapClick, 
-  markers, 
+export function MapboxCanvas({
+  sidebarCollapsed = false,
+  onMapClick,
+  markers,
   landmarks,
-  activeLayers 
+  activeLayers,
 }: MapboxCanvasProps) {
   const mapContainer = useRef<HTMLDivElement>(null);
   const map = useRef<mapboxgl.Map | null>(null);
@@ -55,11 +57,10 @@ export function MapboxCanvas({
 
     const mapInstance = map.current;
 
-    // Add navigation controls
-    mapInstance.addControl(new mapboxgl.NavigationControl(), 'top-right');
-    mapInstance.addControl(new mapboxgl.FullscreenControl(), 'top-right');
+    // Navigation + fullscreen grouped in one corner (vertical stack)
+    mapInstance.addControl(new mapboxgl.NavigationControl(), 'bottom-right');
+    mapInstance.addControl(new mapboxgl.FullscreenControl(), 'bottom-right');
 
-    // Add geocoder search
     const geocoder = new MapboxGeocoder({
       accessToken: MAPBOX_TOKEN,
       mapboxgl: mapboxgl,
@@ -69,6 +70,7 @@ export function MapboxCanvas({
 
     // Map load event
     mapInstance.on('load', () => {
+      mapInstance.resize();
       setIsMapLoaded(true);
 
       // Add 3D terrain
@@ -82,17 +84,6 @@ export function MapboxCanvas({
       mapInstance.setTerrain({ 
         source: 'mapbox-dem', 
         exaggeration: 1.8 
-      });
-
-      // Add sky layer
-      mapInstance.addLayer({
-        id: 'sky',
-        type: 'sky',
-        paint: {
-          'sky-type': 'atmosphere',
-          'sky-atmosphere-sun': [0.0, 90.0],
-          'sky-atmosphere-sun-intensity': 15,
-        },
       });
 
       // Add hillshade layer (initially hidden)
@@ -167,6 +158,22 @@ export function MapboxCanvas({
       mapInstance.remove();
     };
   }, [onMapClick]);
+
+  // Mapbox does not auto-resize when the flex layout changes (e.g. sidebar toggle) — reflow canvas.
+  useEffect(() => {
+    const el = mapContainer.current;
+    if (!el) return;
+
+    const ro = new ResizeObserver(() => {
+      map.current?.resize();
+    });
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, []);
+
+  useEffect(() => {
+    map.current?.resize();
+  }, [sidebarCollapsed]);
 
   // Update markers
   useEffect(() => {
@@ -317,8 +324,11 @@ export function MapboxCanvas({
   }, [activeLayers, isMapLoaded]);
 
   return (
-    <>
-      <div ref={mapContainer} className="w-full h-full" />
+    <div
+      className="map-surface flex min-h-0 min-w-0 flex-1 flex-col bg-zinc-950"
+      data-sidebar-collapsed={sidebarCollapsed ? 'true' : 'false'}
+    >
+      <div ref={mapContainer} className="min-h-0 w-full flex-1" />
       <style>{`
         @keyframes pulse {
           0%, 100% {
@@ -339,6 +349,6 @@ export function MapboxCanvas({
           border-top-color: #18181b !important;
         }
       `}</style>
-    </>
+    </div>
   );
 }
