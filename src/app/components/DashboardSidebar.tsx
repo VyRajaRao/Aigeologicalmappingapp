@@ -26,7 +26,7 @@ export function DashboardSidebar({
     <>
       <div 
         className={`bg-zinc-900 border-r border-zinc-800 flex flex-col h-screen transition-all duration-300 ${
-          isCollapsed ? 'w-0' : 'w-80'
+          isCollapsed ? 'w-0' : 'w-[400px]'
         } overflow-hidden`}
       >
         {/* Header */}
@@ -43,7 +43,7 @@ export function DashboardSidebar({
         </div>
 
         {/* Scrollable Content */}
-        <div className="flex-1 overflow-y-auto p-6 space-y-6">
+        <div className="flex-1 overflow-y-auto p-6 flex flex-col gap-6">
           {/* Status Indicator */}
           <div className="flex items-center justify-between p-3 bg-emerald-500/10 border border-emerald-500/30 rounded-lg">
             <div className="flex items-center gap-2">
@@ -57,18 +57,12 @@ export function DashboardSidebar({
           </div>
 
           <MetricsPanel metrics={metrics} />
-          
-          <div className="border-t border-zinc-800 pt-6">
-            <CompositionPanel composition={composition} />
-          </div>
-          
-          <div className="border-t border-zinc-800 pt-6">
-            <GraphPanel data={trendData} />
-          </div>
-          
-          <div className="border-t border-zinc-800 pt-6">
-            <ScatterPanel data={scatterData} />
-          </div>
+
+          <CompositionPanel composition={composition} />
+
+          <GraphPanel data={trendData} />
+
+          <ScatterPanel data={scatterData} />
         </div>
 
         {/* Footer */}
@@ -82,8 +76,8 @@ export function DashboardSidebar({
       {/* Toggle Button */}
       <button
         onClick={onToggle}
-        className="fixed top-4 left-2 z-50 bg-zinc-900/95 backdrop-blur-sm border border-zinc-700 rounded-lg p-2 hover:bg-zinc-800 transition-colors shadow-lg"
-        style={{ left: isCollapsed ? '8px' : '312px' }}
+        className="fixed top-4 z-50 bg-zinc-900/95 backdrop-blur-sm border border-zinc-700 rounded-lg p-2 hover:bg-zinc-800 transition-colors shadow-lg"
+        style={{ left: isCollapsed ? '8px' : '392px' }}
       >
         {isCollapsed ? (
           <ChevronRight className="w-5 h-5 text-white" />
