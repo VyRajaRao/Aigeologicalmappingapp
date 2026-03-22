@@ -1,5 +1,4 @@
 import { AnalysisResult } from '../types/geological';
-import type { ActiveLayersState } from '../context/TerrainMapContext';
 import { Mountain, TrendingUp, AlertTriangle, MapPin, X } from 'lucide-react';
 import { motion } from 'motion/react';
 
@@ -8,51 +7,12 @@ interface RightOverlayPanelProps {
   onClose: () => void;
   /** When true, panel lives in the scrollable sidebar (bounded height, no map overlap). */
   embedded?: boolean;
-  activeLayers?: ActiveLayersState;
 }
 
-function layerInsightLines(
-  layers: ActiveLayersState | undefined,
-  terrain: AnalysisResult['terrain'],
-): string[] {
-  if (!layers) return [];
-  const lines: string[] = [];
-  if (layers.elevation) {
-    lines.push(`Elevation layer on — value below is tied to the sampled point (${Math.round(terrain.elevation)} m).`);
-  }
-  if (layers.hillshade) {
-    lines.push('Hillshade on — slope readout highlights surface steepness at this location.');
-  }
-  if (layers.terrain) {
-    lines.push(`Terrain class overlay on — classification: ${terrain.terrainType}.`);
-  }
-  if (layers.landmarks) {
-    lines.push('Landmarks on — nearby features listed when detected for this area.');
-  }
-  if (layers.heatmap) {
-    lines.push('Risk heatmap on — risk callout below aligns with the heatmap emphasis.');
-  }
-  if (layers.contours) {
-    lines.push('Contours on — expect local elevation variation within a few km of this point.');
-  }
-  if (layers.boundaries) {
-    lines.push('Boundaries on — regional outlines visible on the map for context.');
-  }
-  return lines;
-}
-
-export function RightOverlayPanel({
-  analysis,
-  onClose,
-  embedded = false,
-  activeLayers,
-}: RightOverlayPanelProps) {
+export function RightOverlayPanel({ analysis, onClose, embedded = false }: RightOverlayPanelProps) {
   if (!analysis) return null;
 
   const { terrain, landmarks, stability } = analysis;
-  const insights = layerInsightLines(activeLayers, terrain);
-  const tagClass =
-    'rounded border border-zinc-600/80 bg-zinc-800/80 px-1.5 py-0.5 text-[10px] uppercase tracking-wide text-zinc-300';
 
   const getRiskColor = (risk: string) => {
     switch (risk) {
@@ -86,22 +46,13 @@ export function RightOverlayPanel({
           <Mountain className="h-4 w-4 shrink-0 text-cyan-400 sm:h-5 sm:w-5" />
           Terrain Analysis
         </h3>
-        <button type="button" onClick={onClose} className="text-zinc-400 transition-colors hover:text-white">
+        <button
+          onClick={onClose}
+          className="text-zinc-400 hover:text-white transition-colors"
+        >
           <X className="w-5 h-5" />
         </button>
       </div>
-
-      {activeLayers && Object.values(activeLayers).some(Boolean) && (
-        <div className="flex flex-wrap gap-1.5 border-b border-zinc-800 px-3 pb-3 pt-0 sm:px-4">
-          {activeLayers.elevation && <span className={tagClass}>Elevation</span>}
-          {activeLayers.hillshade && <span className={tagClass}>Hillshade</span>}
-          {activeLayers.terrain && <span className={tagClass}>Terrain</span>}
-          {activeLayers.landmarks && <span className={tagClass}>Landmarks</span>}
-          {activeLayers.boundaries && <span className={tagClass}>Boundaries</span>}
-          {activeLayers.heatmap && <span className={tagClass}>Heatmap</span>}
-          {activeLayers.contours && <span className={tagClass}>Contours</span>}
-        </div>
-      )}
 
       {/* Content — embedded: flows with sidebar scroll (no inner scrollbar) */}
       <div
@@ -110,15 +61,7 @@ export function RightOverlayPanel({
             ? 'space-y-3 p-3 sm:space-y-4 sm:p-4'
             : 'min-h-0 flex-1 space-y-3 overflow-y-auto overscroll-contain p-3 sm:space-y-4 sm:p-4'
         }
-        >
-        {insights.length > 0 && (
-          <ul className="space-y-1 text-xs leading-snug text-zinc-400">
-            {insights.map((line, i) => (
-              <li key={i}>{line}</li>
-            ))}
-          </ul>
-        )}
-
+      >
         {/* Location */}
         <div className="bg-zinc-800/50 p-3 rounded-lg border border-zinc-700/50">
           <div className="text-xs text-zinc-500 mb-1">Location</div>
@@ -133,8 +76,8 @@ export function RightOverlayPanel({
           <div className="text-lg font-bold text-white capitalize">
             {terrain.terrainType}
           </div>
-          <div className="mt-1 text-xs text-zinc-400">
-            {(terrain.geologicalAge ?? '—') + ' • ' + (terrain.rockType ?? '—')}
+          <div className="text-xs text-zinc-400 mt-1">
+            {terrain.geologicalAge} • {terrain.rockType}
           </div>
         </div>
 
