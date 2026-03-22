@@ -28,7 +28,7 @@ export function RightOverlayPanel({ analysis, onClose }: RightOverlayPanelProps)
       animate={{ x: 0, opacity: 1 }}
       exit={{ x: 400, opacity: 0 }}
       transition={{ duration: 0.3, ease: 'easeOut' }}
-      className="absolute top-4 right-80 bg-zinc-900/95 backdrop-blur-sm border border-zinc-700 rounded-lg w-96 shadow-2xl max-h-[calc(100vh-2rem)] overflow-y-auto"
+      className="absolute top-4 right-80 z-10 bg-zinc-900/95 backdrop-blur-sm border border-zinc-700 rounded-lg w-96 shadow-2xl max-h-[calc(100vh-2rem)] overflow-y-auto"
     >
       {/* Header */}
       <div className="sticky top-0 bg-zinc-900 border-b border-zinc-700 p-4 flex items-center justify-between">

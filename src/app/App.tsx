@@ -206,7 +206,7 @@ export default function App() {
 
         {/* Loading Indicator */}
         {isAnalyzing && (
-          <div className="absolute bottom-8 inset-x-0 flex justify-center pointer-events-none">
+          <div className="absolute bottom-8 inset-x-0 z-20 flex justify-center pointer-events-none">
             <div className="bg-zinc-900/95 backdrop-blur-sm border border-zinc-700 rounded-full px-6 py-3 flex items-center gap-3 shadow-2xl pointer-events-auto">
               <Loader2 className="w-5 h-5 text-cyan-400 animate-spin" />
               <span className="text-sm font-medium text-white">Analyzing terrain...</span>
@@ -216,7 +216,7 @@ export default function App() {
 
         {/* Instructions Overlay */}
         {markers.length === 1 && !isAnalyzing && (
-          <div className="absolute bottom-8 inset-x-0 flex justify-center pointer-events-none">
+          <div className="absolute bottom-8 inset-x-0 z-20 flex justify-center pointer-events-none">
             <div className="bg-gradient-to-r from-cyan-500 to-purple-600 rounded-full px-6 py-3 shadow-2xl animate-pulse pointer-events-auto">
               <span className="text-sm font-medium text-white">
                 🗺️ Click anywhere on the map to analyze terrain

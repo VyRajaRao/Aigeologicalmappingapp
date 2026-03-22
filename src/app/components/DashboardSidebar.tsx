@@ -25,7 +25,7 @@ export function DashboardSidebar({
   return (
     <>
       <div 
-        className={`bg-zinc-900 border-r border-zinc-800 flex flex-col h-screen transition-all duration-300 ${
+        className={`bg-zinc-900 border-r border-zinc-800 flex flex-col h-full shrink-0 transition-all duration-300 ${
           isCollapsed ? 'w-0' : 'w-[400px]'
         } overflow-hidden`}
       >
@@ -73,11 +73,11 @@ export function DashboardSidebar({
         </div>
       </div>
 
-      {/* Toggle Button */}
+      {/* Toggle Button - positioned at the sidebar's right edge */}
       <button
         onClick={onToggle}
         className="fixed top-4 z-50 bg-zinc-900/95 backdrop-blur-sm border border-zinc-700 rounded-lg p-2 hover:bg-zinc-800 transition-colors shadow-lg"
-        style={{ left: isCollapsed ? '8px' : '392px' }}
+        style={{ left: isCollapsed ? '8px' : 'calc(400px - 8px)' }}
       >
         {isCollapsed ? (
           <ChevronRight className="w-5 h-5 text-white" />
