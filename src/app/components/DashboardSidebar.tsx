@@ -1,51 +1,52 @@
+import { useMemo } from 'react';
 import { MetricsPanel } from './MetricsPanel';
 import { CompositionPanel } from './CompositionPanel';
 import { GraphPanel } from './GraphPanel';
 import { ScatterPanel } from './ScatterPanel';
 import { RightOverlayPanel } from './RightOverlayPanel';
 import { LayerControls } from './LayerControls';
-import { GeologicalMetrics, TerrainComposition, AnalysisResult } from '../types/geological';
 import { Layers, Activity, ChevronLeft, ChevronRight, X } from 'lucide-react';
 import { cn } from './ui/utils';
-
-type ActiveLayersState = {
-  elevation: boolean;
-  terrain: boolean;
-  boundaries: boolean;
-  landmarks: boolean;
-  heatmap: boolean;
-  hillshade: boolean;
-  contours: boolean;
-};
+import { useIsMobile } from './ui/use-mobile';
+import { useTerrainMap } from '../context/TerrainMapContext';
 
 interface DashboardSidebarProps {
-  metrics: GeologicalMetrics;
-  composition: TerrainComposition;
-  trendData: Array<{ time: string; elevation: number; stability: number }>;
-  scatterData: Array<{ elevation: number; risk: number; type: string }>;
   isCollapsed: boolean;
   onToggle: () => void;
-  currentAnalysis: AnalysisResult | null;
-  onCloseAnalysis: () => void;
-  activeLayers: ActiveLayersState;
-  onLayerToggle: (layer: keyof ActiveLayersState) => void;
-  /** Drawer overlay on small viewports */
-  isMobile: boolean;
 }
 
-export function DashboardSidebar({
-  metrics,
-  composition,
-  trendData,
-  scatterData,
-  isCollapsed,
-  onToggle,
-  currentAnalysis,
-  onCloseAnalysis,
-  activeLayers,
-  onLayerToggle,
-  isMobile,
-}: DashboardSidebarProps) {
+export function DashboardSidebar({ isCollapsed, onToggle }: DashboardSidebarProps) {
+  const isMobile = useIsMobile();
+  const {
+    metrics,
+    composition,
+    markers,
+    currentAnalysis,
+    activeLayers,
+    toggleLayer,
+    clearAnalysis,
+  } = useTerrainMap();
+
+  const trendData = useMemo(
+    () =>
+      markers.slice(-10).map((marker, index) => ({
+        time: `P${index + 1}`,
+        elevation: Math.round(marker.terrain.elevation),
+        stability: 100 - marker.terrain.slope * 2,
+      })),
+    [markers],
+  );
+
+  const scatterData = useMemo(
+    () =>
+      markers.map((marker) => ({
+        elevation: Math.round(marker.terrain.elevation),
+        risk: marker.terrain.slope,
+        type: marker.terrain.riskLevel,
+      })),
+    [markers],
+  );
+
   return (
     <>
       <div
@@ -62,7 +63,6 @@ export function DashboardSidebar({
               ],
         )}
       >
-        {/* Header */}
         <div className="shrink-0 border-b border-zinc-800 p-4 sm:p-6">
           <div className="mb-2 flex items-center gap-3">
             <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-cyan-500 to-purple-600">
@@ -85,7 +85,6 @@ export function DashboardSidebar({
           </div>
         </div>
 
-        {/* Scrollable content — scrollbar hidden, scroll/touch still works */}
         <div className="scrollbar-hidden min-h-0 flex-1 overflow-y-auto overscroll-contain p-4 sm:p-6">
           <div className="flex flex-col gap-4 sm:gap-6">
             <div className="flex items-center justify-between rounded-lg border border-emerald-500/30 bg-emerald-500/10 p-3">
@@ -103,8 +102,9 @@ export function DashboardSidebar({
               {currentAnalysis ? (
                 <RightOverlayPanel
                   analysis={currentAnalysis}
-                  onClose={onCloseAnalysis}
+                  onClose={clearAnalysis}
                   embedded
+                  activeLayers={activeLayers}
                 />
               ) : (
                 <div className="rounded-lg border border-dashed border-zinc-700 bg-zinc-900/50 p-4 text-center">
@@ -114,7 +114,7 @@ export function DashboardSidebar({
                   </p>
                 </div>
               )}
-              <LayerControls layers={activeLayers} onLayerToggle={onLayerToggle} />
+              <LayerControls layers={activeLayers} onLayerToggle={toggleLayer} />
             </section>
 
             <div className="border-t border-zinc-800 pt-6">
@@ -126,16 +126,21 @@ export function DashboardSidebar({
             </div>
 
             <div className="border-t border-zinc-800 pt-6">
-              <GraphPanel data={trendData} />
+              <GraphPanel data={trendData.length > 0 ? trendData : [
+                { time: 'P1', elevation: 500, stability: 80 },
+                { time: 'P2', elevation: 650, stability: 75 },
+              ]} />
             </div>
 
             <div className="border-t border-zinc-800 pt-6">
-              <ScatterPanel data={scatterData} />
+              <ScatterPanel data={scatterData.length > 0 ? scatterData : [
+                { elevation: 500, risk: 10, type: 'stable' },
+                { elevation: 800, risk: 20, type: 'moderate' },
+              ]} />
             </div>
           </div>
         </div>
 
-        {/* Footer */}
         <div className="shrink-0 border-t border-zinc-800 bg-zinc-900/50 p-4 sm:p-6">
           <div className="text-center text-xs text-zinc-500">
             Last updated: {new Date().toLocaleTimeString()}
@@ -152,11 +157,7 @@ export function DashboardSidebar({
             isMobile && 'top-[max(1rem,env(safe-area-inset-top))] left-[max(1rem,env(safe-area-inset-left))]',
             !isMobile && 'top-4',
           )}
-          style={
-            !isMobile
-              ? { left: isCollapsed ? 8 : 400 - 12 }
-              : undefined
-          }
+          style={!isMobile ? { left: isCollapsed ? 8 : 400 - 12 } : undefined}
           aria-label={isCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
         >
           {isCollapsed ? (
