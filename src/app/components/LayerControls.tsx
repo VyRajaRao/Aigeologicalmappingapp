@@ -26,7 +26,7 @@ export function LayerControls({ layers, onLayerToggle }: LayerControlsProps) {
   ];
 
   return (
-    <div className="absolute top-4 right-4 bg-zinc-900/95 backdrop-blur-sm border border-zinc-700 rounded-lg p-4 w-72 shadow-2xl">
+    <div className="absolute top-4 right-4 z-10 bg-zinc-900/95 backdrop-blur-sm border border-zinc-700 rounded-lg p-4 w-72 shadow-2xl">
       <div className="flex items-center gap-2 mb-4">
         <Layers className="w-5 h-5 text-cyan-400" />
         <h3 className="font-semibold text-white">Map Layers</h3>

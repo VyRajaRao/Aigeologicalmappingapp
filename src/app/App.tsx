@@ -181,7 +181,7 @@ export default function App() {
       />
 
       {/* Right Side - Map Area */}
-      <div className="flex-1 relative">
+      <div className="flex-1 relative min-h-0 overflow-hidden">
         {/* Mapbox Canvas */}
         <MapboxCanvas
           onMapClick={handleMapClick}
@@ -206,18 +206,22 @@ export default function App() {
 
         {/* Loading Indicator */}
         {isAnalyzing && (
-          <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2 bg-zinc-900/95 backdrop-blur-sm border border-zinc-700 rounded-full px-6 py-3 flex items-center gap-3 shadow-2xl">
-            <Loader2 className="w-5 h-5 text-cyan-400 animate-spin" />
-            <span className="text-sm font-medium text-white">Analyzing terrain...</span>
+          <div className="absolute bottom-8 inset-x-0 z-20 flex justify-center pointer-events-none">
+            <div className="bg-zinc-900/95 backdrop-blur-sm border border-zinc-700 rounded-full px-6 py-3 flex items-center gap-3 shadow-2xl pointer-events-auto">
+              <Loader2 className="w-5 h-5 text-cyan-400 animate-spin" />
+              <span className="text-sm font-medium text-white">Analyzing terrain...</span>
+            </div>
           </div>
         )}
 
         {/* Instructions Overlay */}
         {markers.length === 1 && !isAnalyzing && (
-          <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2 bg-gradient-to-r from-cyan-500 to-purple-600 rounded-full px-6 py-3 shadow-2xl animate-pulse">
-            <span className="text-sm font-medium text-white">
-              🗺️ Click anywhere on the map to analyze terrain
-            </span>
+          <div className="absolute bottom-8 inset-x-0 z-20 flex justify-center pointer-events-none">
+            <div className="bg-gradient-to-r from-cyan-500 to-purple-600 rounded-full px-6 py-3 shadow-2xl animate-pulse pointer-events-auto">
+              <span className="text-sm font-medium text-white">
+                🗺️ Click anywhere on the map to analyze terrain
+              </span>
+            </div>
           </div>
         )}
       </div>
